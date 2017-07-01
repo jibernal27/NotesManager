@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Note Manager</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_add_note">Add note</string>
+    <string name="label_form_title">Title</string>
+    <string name="label_form_description">Description</string>
+    <string name="hint_form_title">Note 1</string>
+    <string name="hint_form_description">The description of the note</string>
+    <string name="label_button_form_addNote">Add note</string>
+    <string name="label_button_form_editNote">Update note</string>
+    <string name="label_button_form_delteNote">Delete note</string>
+
+</resources>
