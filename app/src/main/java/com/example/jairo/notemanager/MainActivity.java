@@ -72,11 +72,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed() {
-    super.onBackPressed();
+    protected void onStop() {
+    super.onStop();
         world.persistData(getFilesDir());
-        Snackbar.make(getCurrentFocus(), "Persisted", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
 
     }
 
