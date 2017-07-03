@@ -8,17 +8,17 @@ import java.util.Date;
 
 public class Recipe
 {
-    private double id;
+    private int id;
     private String name;
     private String instructions;
     private Date created_at;
     private Date updated_at;
 
     public Recipe( String name, String instructions ) {
-        this.id = 1;
         this.name = name;
         this.instructions=instructions;
     }
+    public int getId(){return id;}
 
     public String getName() {
         return name;

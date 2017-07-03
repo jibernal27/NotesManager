@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -33,7 +34,9 @@ public class World {
         return ourInstance;
     }
     private List<Recipe> recipes;
+    private HashMap<Integer,Recipe> mapRecipes;
     private boolean loaded;
+    private ArrayAdapter<Recipe> listAdapter;
     private World() {
         recipes= new ArrayList<Recipe>();
         Retrofit retrofit = new Retrofit.Builder()
@@ -42,19 +45,70 @@ public class World {
                 .build();
 
         api = retrofit.create(API.class);
-
-        for (int i=0;i<100;i++)
-        {
-            Recipe act=new Recipe(i+"",+i+"");
-           // recipes.add(act);
-        }
-        loaded=false;
+    mapRecipes= new HashMap<Integer,Recipe>();
     }
 
+    public void sEtListAdapter(ArrayAdapter<Recipe> list)
+    {
+        listAdapter=list;
+    }
+
+    private void getRecipeDetail(final int i)
+    {
+
+        Call<Recipe> call = api.getRecipe(recipes.get(i).getId());
+
+        call.enqueue(new Callback<Recipe>() {
+            @Override
+            public void onResponse(Call<Recipe> call, Response<Recipe> response) {
+                if (response.isSuccessful()) {
+                    recipes.set(i,response.body());
+                } else {
+                    // error response, no access to resource?
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Recipe> call, Throwable t) {
+                // something went completely south (like no internet connection)
+                Log.d("Error", t.getMessage());
+            }
+        });
+
+    }
+    private void getRecipes()
+    {
+        Call<List<Recipe>> call = api.getRecipeList();
+
+        call.enqueue(new Callback<List<Recipe>>() {
+            @Override
+            public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
+                if (response.isSuccessful()) {
+                    recipes=response.body();
+                    for (int i=0;i<recipes.size();i++)
+                    {
+                        getRecipeDetail(i);
+                    }
+                    listAdapter.clear();
+                    listAdapter.addAll(recipes);
+                } else {
+                    // error response, no access to resource?
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Recipe>> call, Throwable t) {
+                // something went completely south (like no internet connection)
+                Log.d("Error", t.getMessage());
+            }
+        });
+    }
     public List<Recipe> getArrayRecipes()
     {
+         getRecipes();
         return recipes;
     }
+
 
     public Recipe getRecipe(int i)
     {
@@ -64,22 +118,56 @@ public class World {
 
     public boolean addRecipe(String name, String description)
     {
-        Recipe add= new Recipe(name,description);
-        recipes.add(add);
+        Call<Void> call =api.postRecipe(name,description);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse( Call<Void> call,  Response<Void> response) {
+                if(response.isSuccessful())
+                {
+                    getRecipes();
+                }
+                else
+                {
+
+                }
+            }
+
+            @Override
+            public void onFailure( Call<Void> call, Throwable t) {
+
+            }
+        });
         return true;
     }
 
 
-    public boolean editRecipe(int s, String name, String description) {
+    public boolean editRecipe(final int s, String name, String description) {
         if(s<0 ||s>recipes.size()-1)
         {
             return false;
         }
 
-        Recipe add= recipes.get(s);
-        add.setName(name);
-        add.setInstructions(description);
-            return true;
+        Call<Void> call =api.editRecipe(recipes.get(s).getId(),name,description);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse( Call<Void> call,  Response<Void> response) {
+                if(response.isSuccessful())
+                {
+                   getRecipeDetail(s);
+                }
+                else
+                {
+
+                }
+            }
+
+            @Override
+            public void onFailure( Call<Void> call, Throwable t) {
+
+
+            }
+        });
+        return true;
     }
 
     public boolean deleteRecipe(int s) {
@@ -87,7 +175,25 @@ public class World {
         {
             return false;
         }
-        recipes.remove(s);
+        Call<Void> call =api.deleteRecipe(recipes.get(s).getId());
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse( Call<Void> call,  Response<Void> response) {
+                if(response.isSuccessful())
+                {
+                    getRecipes();
+                }
+                else
+                {
+
+                }
+            }
+
+            @Override
+            public void onFailure( Call<Void> call, Throwable t) {
+
+            }
+        });
         return true;
     }
 
