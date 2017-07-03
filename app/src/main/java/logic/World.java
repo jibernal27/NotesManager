@@ -26,17 +26,41 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 
 public class World {
-    private static final World ourInstance = new World();
+    /**
+     * URL of the backend
+     */
     public static final String URL="http://redo-receta.herokuapp.com";
-    public final String PERSISTENCE="data.txt";
+    /**
+     * Instance of the API
+     */
     private API api;
+
+    /**
+     * Creates the instance with the provate constructor
+     */
+
+    private static final World ourInstance = new World();
+
+    /**
+     * SIngleton method to access an instance
+     * @returns  The instance of the world
+     */
     public static World getInstance() {
         return ourInstance;
     }
+
+    /**
+     * List of recepies
+     */
     private List<Recipe> recipes;
-    private HashMap<Integer,Recipe> mapRecipes;
-    private boolean loaded;
+    /**
+     * Adapter of the listview
+     */
     private ArrayAdapter<Recipe> listAdapter;
+
+    /**
+     * Creates the recepies list, configures retrofit to work
+     */
     private World() {
         recipes= new ArrayList<Recipe>();
         Retrofit retrofit = new Retrofit.Builder()
@@ -45,15 +69,23 @@ public class World {
                 .build();
 
         api = retrofit.create(API.class);
-    mapRecipes= new HashMap<Integer,Recipe>();
+
     }
 
+    /**
+     * Sests the list adapter
+     * @param list
+     */
     public void sEtListAdapter(ArrayAdapter<Recipe> list)
     {
         listAdapter=list;
     }
 
-    private void getRecipeDetail(final int i)
+    /**
+     * Gets asynchronously the details of a recipe from the API
+     * @param i The position of the recipe in the list recipes
+     */
+    private void getRecipeDetail(final int i,final boolean up)
     {
 
         Call<Recipe> call = api.getRecipe(recipes.get(i).getId());
@@ -63,6 +95,11 @@ public class World {
             public void onResponse(Call<Recipe> call, Response<Recipe> response) {
                 if (response.isSuccessful()) {
                     recipes.set(i,response.body());
+                    if(up)
+                    {
+                        listAdapter.clear();
+                        listAdapter.addAll(recipes);
+                    }
                 } else {
                     // error response, no access to resource?
                 }
@@ -76,7 +113,12 @@ public class World {
         });
 
     }
-    private void getRecipes()
+
+    /**
+     * Gets asynchronously the list of recipes from the API, assings it to recepies and gets the
+     * detail of each recepi
+     */
+    public void getRecipes()
     {
         Call<List<Recipe>> call = api.getRecipeList();
 
@@ -87,10 +129,9 @@ public class World {
                     recipes=response.body();
                     for (int i=0;i<recipes.size();i++)
                     {
-                        getRecipeDetail(i);
+                        getRecipeDetail(i,true);
                     }
-                    listAdapter.clear();
-                    listAdapter.addAll(recipes);
+
                 } else {
                     // error response, no access to resource?
                 }
@@ -103,18 +144,33 @@ public class World {
             }
         });
     }
+
+    /**
+     * Returns the local list of recepies
+     * @return The list of recepies
+     */
     public List<Recipe> getArrayRecipes()
     {
-         getRecipes();
+
         return recipes;
     }
 
-
+    /**
+     * Gets a recipe from recepies
+     * @param i THe position to return
+     * @return THe i-esim recipe in recipes
+     */
     public Recipe getRecipe(int i)
     {
         return recipes.get(i);
     }
 
+    /**
+     * Adds asynchronously a recipe to the backend
+     * @param name The name of the recipe
+     * @param description THe description of the recipe to add
+     * @return true
+     */
 
     public boolean addRecipe(String name, String description)
     {
@@ -141,6 +197,13 @@ public class World {
     }
 
 
+    /**
+     * Edits asynchronously a recipe
+     * @param s THe position in recipes of the recipe
+     * @param name The new name of the recipe
+     * @param description The new description of the recipe
+     * @return true
+     */
     public boolean editRecipe(final int s, String name, String description) {
         if(s<0 ||s>recipes.size()-1)
         {
@@ -153,7 +216,8 @@ public class World {
             public void onResponse( Call<Void> call,  Response<Void> response) {
                 if(response.isSuccessful())
                 {
-                   getRecipeDetail(s);
+                   getRecipeDetail(s,true);
+
                 }
                 else
                 {
@@ -169,6 +233,12 @@ public class World {
         });
         return true;
     }
+
+    /**
+     * Deletes a recipe asynchronously
+     * @param s The position of the recipe to delete in the list recipes
+     * @return true
+     */
 
     public boolean deleteRecipe(int s) {
         if(s<0 ||s>recipes.size()-1)
@@ -197,70 +267,5 @@ public class World {
         return true;
     }
 
-    public void loadData(File file)
-    {
-        if(!loaded) {
-            loaded=true;
-            File f = new File(file, PERSISTENCE);
-            BufferedReader br = null;
-            FileReader fr = null;
-            if (f.isFile()) {
-                try {
-                    fr = new FileReader(f);
-                    br = new BufferedReader(fr);
 
-                    String sCurrentLine = "";
-                    String name = "";
-                    String description = "";
-                    int total = 0;
-                    sCurrentLine = br.readLine();
-                    if (sCurrentLine != null) {
-                        total = Integer.parseInt(sCurrentLine);
-                    }
-                    for (int i = 0; i < total; i++) {
-                        if ((name = br.readLine()) != null && (description = br.readLine()) != null) {
-                            Recipe r = new Recipe(name, description);
-                            recipes.add(r);
-                        }
-
-                    }
-
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    try {
-
-                        br.close();
-                        fr.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-
-                }
-            } else {
-
-            }
-
-        }
-    }
-
-    public void persistData(File file)
-    {
-        try{
-            File f=new File(file,PERSISTENCE);
-            PrintWriter writer = new PrintWriter(f);
-                writer.println(recipes.size());
-                for (int i=0;i<recipes.size();i++)
-                {
-                    Recipe act=recipes.get(i);
-                    writer.println(act.getName());
-                    writer.println(act.getInstructions());
-                }
-            writer.close();
-        } catch (IOException e) {
-            // do something
-        }
-    }
 }

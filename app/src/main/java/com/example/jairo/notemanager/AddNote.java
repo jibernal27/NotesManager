@@ -13,14 +13,39 @@ import android.widget.TextView;
 
 import logic.World;
 
+/**
+ * Activity to add or edit a Recipe
+ */
 public class AddNote extends AppCompatActivity {
+    /**
+     * Text view with the name of the recipe/note
+     */
     private TextView textViewName;
+    /**
+     * Text view with the description/instruction of the recipe
+     */
     private TextView textViewescription;
+    /**
+     * Button to add/edit a note
+     */
     private Button buttonAddNote;
+    /**
+     * BUtton to delete a note
+     */
     private Button buttonDeleteNote;
+    /**
+     * Instance of the world
+     */
     private World world;
+    /**
+     * Number of the recipe in the list recipes, -1 if is a new recipe
+     */
     private int s;
 
+    /**
+     * Initiates all attributes
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +70,9 @@ public class AddNote extends AppCompatActivity {
 
     }
 
+    /**
+     * Renders the view as edit mode
+     */
     private void editMode()
     {
         textViewName.setText(world.getRecipe(s).getName());
@@ -66,6 +94,10 @@ public class AddNote extends AppCompatActivity {
         });
 
     }
+
+    /**
+     * render the view as add mode
+     */
     private void addMode()
     {
         buttonAddNote.setOnClickListener(new View.OnClickListener() {
@@ -77,6 +109,10 @@ public class AddNote extends AppCompatActivity {
         });
     }
 
+    /**
+     * Checks of the values in the textviews are not empty.
+     * @return True if vaild
+     */
     private boolean checkData()
     {
         if(!textViewName.getText().toString().isEmpty())
@@ -98,6 +134,9 @@ public class AddNote extends AppCompatActivity {
         return false;
     }
 
+    /**
+     * Gets the user input and calls the world to edit a note
+     */
     private void editNote()
     {
         if(checkData())
@@ -117,6 +156,10 @@ public class AddNote extends AppCompatActivity {
 
         }
     }
+
+    /**
+     * Gets the user input and add a note using the world
+     */
     private void addNote()
     {
         if (checkData())
@@ -138,13 +181,16 @@ public class AddNote extends AppCompatActivity {
 
     }
 
+    /**
+     * Deletes the actual note
+     */
     private void deleteNote()
     {
         AlertDialog.Builder alert = new AlertDialog.Builder(
                this);
-        alert.setTitle("Alert!!");
-        alert.setMessage("Are you sure to delete record");
-        alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+        alert.setTitle("Confirmation");
+        alert.setMessage("Are you sure to delete the Note/Recipe");
+        alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -166,7 +212,7 @@ public class AddNote extends AppCompatActivity {
 
             }
         });
-        alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+        alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
